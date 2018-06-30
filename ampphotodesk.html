@@ -1,0 +1,183 @@
+<!doctype html>
+<html ⚡4email>
+<head>
+  <meta charset="utf-8">
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <script async custom-element="amp-bind" src="https://cdn.ampproject.org/v0/amp-bind-0.1.js"></script>
+  <script async custom-element="amp-sidebar" src="https://cdn.ampproject.org/v0/amp-sidebar-0.1.js"></script>
+<script async custom-element="amp-list" src="https://cdn.ampproject.org/v0/amp-list-0.1.js"></script>
+<script async custom-element="amp-accordion" src="https://cdn.ampproject.org/v0/amp-accordion-0.1.js"></script>
+<script async custom-template="amp-mustache" src="https://cdn.ampproject.org/v0/amp-mustache-0.1.js"></script>
+<script async custom-element="amp-carousel" src="https://cdn.ampproject.org/v0/amp-carousel-0.1.js"></script>
+  <style amp4email-boilerplate>body{visibility:hidden}</style>
+  <style amp-custom>
+    body { min-height:600px; font-family:Arial;}
+    header { padding:5px; border:1px solid #ccc; box-shadow: 0px 1px 1px #eee; }
+    amp-sidebar { height:100vw; padding:10px; }
+    amp-sidebar > amp-img { display:block; clear:both; }
+    h1 { font-size:18pt; padding:0; margin:0;}
+    h4 { font-size:12pt; padding:1.02ex; }
+    amp-accordion > section > h2 {font-size:14pt;text-transform:uppercase;}
+    .logobutton { display:inline-block; }
+    .headergrid {
+      display:grid;
+      grid-template-columns: 50px 1fr 40px;
+      grid-template-rows:60px;
+    }
+    .title { text-align:center;vertical-align:center;text-transform:uppercase;}
+    .hamburger { font-size:30px;vertical-align:middle;display:block;padding:0;margin:0;line-height:50px;}
+
+    .bodygridwrap {
+    }
+    .bodygrid div[role=list]{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows:350px;
+      grid-column-gap:10px;
+      grid-row-gap:10px;
+    }
+
+    .article { 
+        border-radius:4px;
+        display:grid;
+        grid-template-rows:9ex 250px;
+        overflow:hidden;
+    }
+    .article h4 {
+      grid-row: 1/2;
+    }
+    .article h4 > a {
+      font-size:16px;
+      text-decoration:none;
+      color:#262626;
+    }
+    .article a.img {
+      grid-row: 2/3;
+    }
+  </style>
+</head>
+<body>
+<header class="headergrid">
+  <div><amp-img src="https://cdn.flipboard.com/badges/flipboard_lrsw.png" layout="fixed" height="50" width="50"></amp-img></div>
+  <div class="title"><h1>This Week from <br />The Photo Desk</h1></div>
+  <div class="hamburger" on="tap:header-sidebar.toggle" tabindex="0" role="button">☰</div>
+</header>
+
+
+<div class="bodygridwrap">
+  <div class="bodygridx">  
+  <amp-list
+    id="articlegroup"
+    layout="fixed-height"
+    height="100vh"
+    width="auto"
+    src="https://7n1bho79fc.execute-api.us-east-1.amazonaws.com/dev/updateFeed?feed=photodesk&limit=6"
+    class="bodygrid"
+    template="amp-template-id">
+  </amp-list>
+  </div>
+</div>
+
+<amp-sidebar id="header-sidebar" side="right" layout="nodisplay">
+
+<h3>Find more on Flipboard</h3>
+<br />
+<a href="https://twitter.com/flipboard"><amp-img
+   src="https://cdn.flipboard.com/email/assets/share/Twitter%402x.png"
+   layout="fixed"
+   width="20"
+   height="20"></amp-img></a>
+
+<a href="https://facebook.com/flipboard"><amp-img
+   src="https://cdn.flipboard.com/email/assets/share/Facebook%402x.png"
+   layout="fixed"
+   width="20"
+  height="20"></amp-img></a>
+
+<a href="https://instagram.com/flipboard"><amp-img
+   src="https://cdn.flipboard.com/email/assets/fliptop-instagram.png"
+   layout="fixed"
+   width="20"
+  height="20"></amp-img></a>
+
+   </amp-sidebar>
+
+    <template type="amp-mustache" id="amp-template-id">
+    <section class="article">
+      <h4><a href="{{url}}">{{title}}</a></h4>
+<amp-carousel width="400"
+  height="250"
+  layout="responsive"
+  type="slides">
+  {{#more_images}}  
+    {{#image}}
+      <a class="img" href="{{url}}">
+        {{#image.largeURL}}
+          <amp-img 
+               layout="responsive"
+               width="{{image.original_width}}"
+               height="{{image.original_height}}"
+               src="{{image.largeURL}}"></amp-img>
+          {{/image.largeURL}}
+          {{^image.largeURL}}
+            {{#image.xlargeURL}}
+            <amp-img 
+               layout="responsive"
+               width="{{image.original_width}}"
+               height="{{image.original_height}}"
+               src="{{image.xlargeURL}}"></amp-img>
+            {{/image.xlargeURL}}
+            {{^image.xlargeURL}}
+              {{#image.mediumURL}}    
+              <amp-img 
+                     layout="responsive"
+                     width="{{image.original_width}}"
+                     height="{{image.original_height}}"
+                     src="{{image.mediumURL}}"></amp-img>
+              {{/image.mediumURL}}
+            {{/image.xlargeURL}}
+          {{/image.largeURL}}
+      </a>
+      {{/image}}
+  {{/more_images}}
+{{^more_images}}
+  {{#image}}
+      <a class="img" href="{{url}}">
+        {{#image.largeURL}}
+          <amp-img 
+               layout="responsive"
+               width="{{image.original_width}}"
+               height="{{image.original_height}}"
+               src="{{image.largeURL}}"></amp-img>
+          {{/image.largeURL}}
+          {{^image.largeURL}}
+            {{#image.xlargeURL}}
+            <amp-img 
+               layout="responsive"
+               width="{{image.original_width}}"
+               height="{{image.original_height}}"
+               src="{{image.xlargeURL}}"></amp-img>
+            {{/image.xlargeURL}}
+            {{^image.xlargeURL}}
+              {{#image.mediumURL}}    
+              <amp-img 
+                     layout="responsive"
+                     width="{{image.original_width}}"
+                     height="{{image.original_height}}"
+                     src="{{image.mediumURL}}"></amp-img>
+              {{/image.mediumURL}}
+            {{/image.xlargeURL}}
+          {{/image.largeURL}}
+      </a>
+      {{/image}}
+{{/more_images}}
+      </amp-carousel>
+  </section>
+    </template>
+  
+  
+  <template type="amp-mustache" id="image-render">
+
+  </template>
+  </body>
+</html>
