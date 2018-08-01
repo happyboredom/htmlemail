@@ -1,11 +1,7 @@
 import json
 import requests
+from lambda_decorators import json_http_resp, load_json_body, cors_headers
 
-# Lambda-specfic stuff
-CORS_HEADER = {
-    "Access-Control-Allow-Origin" : "*",
-    "Access-Control-Allow-Credentials" : True
-}
 
 # Search Stuff
 SEARCH_BASE_URL = 'https://contextualwebsearch.com'
@@ -26,6 +22,12 @@ FLIP_UPDATEFEED_URL  = '{}{}'.format(FLIP_BASE_URL, FLIP_UPDATEFEED_PATH)
 FEED_DAILY_EDITION = 'sid/3adc9613z/news'
 FEED_10TODAY = 'sid/k6ln1khuz/flipboard'
 FEED_PHOTODESK = 'sid/cpjmjjkiz/thephotodesk'
+
+ALLOWED_ORIGINS = [
+    "https://mail.google.com",
+    "https://ggdmfw.com"
+]
+
 
 SECTION_PARAM_MAP = {
     '10today':FEED_10TODAY,
@@ -68,18 +70,30 @@ def fetchit(url, params = None):
     body = requests.get(url, params=params)
     return body.json()
 
-def cors_response(data):
-    response = {
-        "headers": CORS_HEADER,
-        "statusCode": 200,
-        "body": json.dumps({
-            "items": data
-        })
-    }
-    return response
 
+def validate(func):
+    def wrapper(event, context):
+        # print "****"
+        # print event, context
+        # print "****"
+        headers = event.setdefault("headers", {})
+        header_origin = headers.get('Origin')
+        params = event.setdefault("queryStringParameters", {})
+        amp_origin = params.get('__amp_source_origin', "")
+        # if header_origin in ("https://ggdmfw.com", "https://mail.google.com"):
+        data = func(event, context)
+        return {
+            "statusCode":200,
+            "body":json.dumps({"items": data})
+        }
+    return wrapper
+
+@cors_headers
+@json_http_resp
 def updateFeed(event, context):
-    params = event.get("queryStringParameters", {})
+    # Params:
+    # ?feed=de/10today/photodesk
+    params = event.get("queryStringParameters", {}) or {}
     section_id = SECTION_PARAM_MAP.get(params.get('feed', None), None) or FEED_DAILY_EDITION
     feed_args = {
         "sections":section_id,
@@ -88,10 +102,12 @@ def updateFeed(event, context):
     feed_args.update(ARGS)
     foo = fetchit(FLIP_UPDATEFEED_URL, params=feed_args)
     items = [Item(f) for f in foo.get('stream') if f.get("type") in ALLOWED_FEED_ITEM_TYPES]
-    return cors_response([i.json() for i in items])
+    return [i.json() for i in items]
 
+@cors_headers
+@json_http_resp
 def search(event, context):
-    params = event.get("queryStringParameters", {})
+    params = event.get("queryStringParameters", {}) or {}
     data = {
         "q":params.get("q","werewolf"),
         "autoCorrect":params.get("autoCorrect", "false"),
@@ -99,4 +115,4 @@ def search(event, context):
     }
     foo = fetchit(WEB_SEARCH_URL, params=data)
     items = foo.get('value')
-    return cors_response([i for i in items])
+    return [i for i in items]

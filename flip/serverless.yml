@@ -61,7 +61,11 @@ functions:
       - http:
           path: updateFeed
           method: get
-          cors: true
+          cors:
+            origin: '*'
+            headers:
+              - Origin
+            allowCredentials: false
           resp: json
           request:
             parameters:
