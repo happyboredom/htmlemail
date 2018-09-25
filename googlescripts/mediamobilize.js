@@ -1,24 +1,9 @@
-
-n onOpen() {
-  SpreadsheetApp.getUi()
-  .createMenu('Generate')
-  .addItem("Generate Ad", 'openDialog')
-  .addToUi();
-}
-
-function doGet() {
-  return HtmlService
-  .createHtmlOutputFromFile('preview')
-  .evaluate();
-}
-
-function openDialog() {
-  var html = HtmlService
-  .createTemplateFromFile('preview')
-  .evaluate();
-  SpreadsheetApp
-  .getUi()
-  .showModalDialog(html, 'Output');
+function onOpen() {
+  var sheet = SpreadsheetApp.getActive();
+  var menubuttons = [
+    {name:"Generate Ad", functionName:"parseUgly"}
+  ];
+  sheet.addMenu("Generate", menubuttons)
 }
 
 function link_(link, text) {
@@ -114,5 +99,6 @@ function parseUgly() {
   var image = image_({'link':mapper['link'], 'image':mapper['image'], 'text':data[0][0]});
   var body = body_({'link':mapper['link'], 'text':mapper['body']});
   var module = promoted.concat(headline, image, body);
-  return JSON.stringify(module, undefined, 3);
+  Logger.log(JSON.stringify(module));
+  return module;
 }
