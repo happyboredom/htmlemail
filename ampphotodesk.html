@@ -1,5 +1,5 @@
 <!doctype html>
-<html ⚡4email>
+<html amp4email>
 <head>
   <meta charset="utf-8">
   <script async src="https://cdn.ampproject.org/v0.js"></script>
@@ -13,76 +13,54 @@
   <style amp-custom>
     body { min-height:600px; font-family:Arial;}
     header { padding:5px; border:1px solid #ccc; box-shadow: 0px 1px 1px #eee; }
-    amp-sidebar { height:100vw; padding:10px; }
-    amp-sidebar > amp-img { display:block; clear:both; }
     h1 { font-size:18pt; padding:0; margin:0;}
     h4 { font-size:12pt; padding:1.02ex; }
+    .wrap { margin: 0 42px; }
+    .article > h3 { font-size:20px; line-height:24px; }
+    .article > h3 > a { text-decoration:none; color:#262626; } 
+
     amp-accordion > section > h2 {font-size:14pt;text-transform:uppercase;}
     .logobutton { display:inline-block; }
-    .headergrid {
-      display:grid;
-      grid-template-columns: 50px 1fr 40px;
-      grid-template-rows:60px;
-    }
     .title { text-align:center;vertical-align:center;text-transform:uppercase;}
     .hamburger { font-size:30px;vertical-align:middle;display:block;padding:0;margin:0;line-height:50px;}
-
-    .bodygridwrap {
-    }
-    .bodygrid div[role=list]{
-      display:grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-auto-rows:350px;
-      grid-column-gap:10px;
-      grid-row-gap:10px;
-    }
-
-    .article { 
-        border-radius:4px;
-        display:grid;
-        grid-template-rows:9ex 250px;
-        overflow:hidden;
-    }
-    .article h4 {
-      grid-row: 1/2;
-    }
-    .article h4 > a {
-      font-size:16px;
-      text-decoration:none;
-      color:#262626;
-    }
-    .article a.img {
-      grid-row: 2/3;
-    }
   </style>
 </head>
 <body>
-<header class="headergrid">
-  <div><amp-img src="https://cdn.flipboard.com/badges/flipboard_lrsw.png" layout="fixed" height="50" width="50"></amp-img></div>
-  <div class="title"><h1>This Week from <br />The Photo Desk</h1></div>
-  <div class="hamburger" on="tap:header-sidebar.toggle" tabindex="0" role="button">☰</div>
+<header class="wrap">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td align="left">
+        <amp-img src="https://cdn.flipboard.com/badges/flipboard_lrsw.png" layout="fixed" height="50" width="50"></amp-img>
+      </td>
+      <td align="center">
+        <div class="title"><h1>This Week from <br />The Photo Desk</h1></div>        
+      </td>
+      <td align="right">
+        <div class="hamburger" on="tap:header-sidebar.toggle" tabindex="0" role="button">☰</div>  
+      </td>
+    </tr>
+  </table>
 </header>
-
-<div class="bodygridwrap">
+<!-- yum="sid%2Fk6ln1khuz%2Fflipboard"
+yum2="sid%2Fcpjmjjkiz%2Fthephotodesk"
+yum3="sid/3adc9613z/news" -->
+<section class="wrap">
   <div class="bodygridx">  
   <amp-list
     id="articlegroup"
     layout="fixed-height"
     height="100vh"
     width="auto"
-    src="https://61a7768c.ngrok.io/amp4email/feed?sections=sid%2Fk6ln1khuz%2Fflipboard"
-    yum="sid%2Fk6ln1khuz%2Fflipboard"
-    yum2="sid%2Fcpjmjjkiz%2Fthephotodesk"
-    yum3="sid/3adc9613z/news"
+    src="https://dfb7f7cb.ngrok.io/amp4email/feed?sections=sid%2Fcpjmjjkiz%2Fthephotodesk"
     class="bodygrid"
     template="amp-template-id">
   </amp-list>
   </div>
-</div>
+</section>
 
 <!-- SIDEBAR -->
 <amp-sidebar id="header-sidebar" side="right" layout="nodisplay">
-<h3>Find more on Flipboard</h3>
+<h4>Find more on Flipboard</h4>
 <br />
 <a href="https://twitter.com/flipboard"><amp-img
    src="https://cdn.flipboard.com/email/assets/share/Twitter%402x.png"
@@ -107,15 +85,15 @@
 
 <!-- PHOTODESK CAROUSELS -->
     <template type="amp-mustache" id="amp-template-id">
-    <section class="article">
-      <h4><a href="{{url}}">{{title}}</a></h4>
+<section class="article">
+  <h3><a href="{{clickURL}}">{{title}}</a></h3>
 <amp-carousel width="400"
   height="250"
   layout="responsive"
   type="slides">
   {{#images}}  
     {{#image}}
-      <a class="img" href="{{url}}">
+      <a class="img" href="{{clickURL}}">
         {{#image.largeURL}}
           <amp-img 
                layout="responsive"
@@ -143,6 +121,14 @@
           {{/image.largeURL}}
       </a>
       {{/image}}
+      {{#posterImage}}
+      <amp-img 
+               layout="responsive"
+               width="200"
+               height="200"
+               src="{{posterImage.smallURL}}"></amp-img>
+      {{/posterImage}}
+
   {{/images}}
       </amp-carousel>
   </section>
