@@ -1,7 +1,8 @@
 function onOpen() {
   SpreadsheetApp.getUi()
   .createMenu('Generate')
-  .addItem("Generate Ad", 'openDialog')
+  .addItem("Generate Media Mobilize Ad", 'openDialog')
+  .addItem("Generate Module", 'openModule')
   .addToUi();
 }
 
@@ -19,6 +20,16 @@ function openDialog() {
   .getUi()
   .showModalDialog(html, 'Output');
 }
+
+function openModule() {
+  var html = HtmlService
+  .createTemplateFromFile('module')
+  .evaluate();
+  SpreadsheetApp
+  .getUi()
+  .showModalDialog(html, 'Output');
+}
+
 
 function link_(link, text) {
   var html = '<a href="__link__" style="__style__">__text__</a>';
@@ -68,8 +79,8 @@ function image_(data) {
     {
       'text':data['text'],
       'image':data['image'],
-      'height':'',
-      'width':566,
+      'height':Math.floor(800 * 566 / 1200),
+      'width':Math.floor(1200 * 566 / 1200),
       'image_class':'imageScale',
       'web_url':data['link'],
       'space':'16',
@@ -81,9 +92,9 @@ function image_(data) {
 
 function body_(data) {
   var body = data['text'];
-  var stylediv = 'font-size:17px;font-family: Georgia, Helvetica, Arial, sans-serif;text-align:left;line-height:26px;Margin-bottom:15px;';
+  var stylediv = 'font-size:17px;font-family: Georgia, serif;text-align:left;line-height:26px;Margin-bottom:15px;';
   var stylea = 'text-decoration:none;color:#000000;';
-  var styleDomain = 'font-family: Helvetica, Arial, sans-serif; font-weight:bold;';
+  var styleDomain = 'font-family:Helvetica, Arial, sans-serif; font-weight:bold;';
   var cssClass = 'font14 paddingbottom20';
   var domain = data['domain'] || '';
   var tmpl = '<div class="__class__">' + 
@@ -147,3 +158,85 @@ function parseUgly() {
   Logger.log(final);
   return final;
 }
+
+
+function convertToAbc(setup, line) {
+  var temp = {};
+  for (var i=1;i<setup.length;i++) {
+    var key=setup[i];
+    var val=line[i];
+    if (val != undefined && val != '' && val != null) {
+      temp[key] = val;
+    }
+  }
+  return temp;
+}
+
+function parseModule() {
+  var range = SpreadsheetApp.getActive().getActiveSheet().getDataRange();
+  var data = range.getValues();
+  var setup = data[0];
+  var data = data.splice(1,data.length);
+  var output = "body.default_padding = 42\n" + 
+    "body.default_padding_class = w10\n" +
+      "\n\n";
+  var config = [];
+  for (var i=0;i<data.length;i++) {
+    var line = data[i];
+    config.push(convertToAbc(setup, line));
+  }
+  //return JSON.stringify(config, undefined, 2);
+  var final = "body.default_padding = 42\n" + 
+    "body.default_padding_class = w10\n" +
+      "body.default_style = font-family:Arial, sans-serif;" +
+      "\n\n";
+  final += config.map(convertToConfig).join('\n');
+  return final;
+}
+
+function culturistGuestHeader() {
+  var top = 'bg.outer = #000000'
+  + '\n' + 'body.default_padding = 0' 
+  + '\n' + 'body.default_padding_class = w10'
+  + '\n' + 'body.default_style=  font-size:15px;line-height:21px;color:#262626;'
+  + '\n' + 'wrap.padding = 0';
+  var body = [
+    {
+      'space':'5',
+      'space_class':'h10',
+    },
+    {
+      'text':output,
+      'line_class':'blackHeaderTopWide',
+      'image_2col':'t',
+      'col1_width':405,
+      'col2_width':0,
+      'col3_width':0,
+      'left_sub_lines':[
+        {
+          'image':'https://cdn.flipboard.com/email/assets/bracket-topleft-black2.png',
+          'image_class':'blackBracket mobileOnly',
+          'style':'',
+          'height':20,
+          'width':20,
+          'padding':0
+        },
+        {
+          'image':'http://cdn.flipboard.com/email/assets/bracket-topleft.png',
+          'image_class':'blackBracket desktopOnly',
+          'style':'',
+          'height':25,
+          'width':25,
+          'padding':0
+        },
+        {
+          'space':0,
+          'space_class':'dh13',
+        }
+      ],
+      'right_sub_lines':[]
+    }
+  ];
+}
+
+
