@@ -3,6 +3,7 @@ function onOpen() {
   .createMenu('Generate')
   .addItem("Generate Media Mobilize Ad", 'openDialog')
   .addItem("Generate Module", 'openModule')
+  .addItem("Fetch Section", 'openFetchSection')
   .addToUi();
 }
 
@@ -134,6 +135,7 @@ function convertToConfig(data, index) {
   return output;
 }
 
+
 function parseUgly() {
   var sheet = SpreadsheetApp.getActive();
   var selection = sheet.getSelection();
@@ -155,12 +157,11 @@ function parseUgly() {
     "body.default_padding_class = w10" +
       "\n\n";
   final += module.map(convertToConfig).join('\n');
-  Logger.log(final);
   return final;
 }
 
 
-function convertToAbc(setup, line) {
+function convertToSheetToModule(setup, line) {
   var temp = {};
   for (var i=1;i<setup.length;i++) {
     var key=setup[i];
@@ -183,7 +184,7 @@ function parseModule() {
   var config = [];
   for (var i=0;i<data.length;i++) {
     var line = data[i];
-    config.push(convertToAbc(setup, line));
+    config.push(convertToSheetToModule(setup, line));
   }
   //return JSON.stringify(config, undefined, 2);
   var final = "body.default_padding = 42\n" + 
@@ -194,6 +195,157 @@ function parseModule() {
   return final;
 }
 
+
+/*
+items.1.title = Silence on Wall Street.
+items.1.author_display_name = By Lori Rozsa
+items.1.author = By Lori Rozsa
+items.1.web_url = https://www.washingtonpost.com/
+items.1.item_url = https://www.washingtonpost.com/
+items.1.section_url = flipboard://showSection/resolve%2Fflipboard%2Furl%252Fhttps%253A%252F%252Fwww.washingtonpost.com%252Fpolitics%252Fsilence-on-wall-street-tears-in-a-retirement-home-the-country-watches-transfixed-as-ford-tells-her-story%252F2018%252F09%252F27%252F09de532a-c261-11e8-97a5-ab1e46bb3bc7_story.html?back=flipboard/curator%2Fmagazine%2Foatw0j5SRMm6x60FIwotoA%3Am%3A3153968
+items.1.excerpt = ...
+items.1.image.width = 550
+items.1.section_id = flipboard/curator%2Fmagazine%2Foatw0j5SRMm6x60FIwotoA%3Am%3A3153968
+items.1.domain = washingtonpost.com
+items.1.bottomlinespace = 0
+items.1.bottomlineheight = 1
+items.1.bottomlinecolor = #cccccc
+items.1.line_after_block = 1
+items.1.space_after_block = 1
+# largeURL
+items.1.image.url = https://d1i4t8bqe7zgj6.cloudfront.net/09-27-2018/t_6bac42c03d394a77911e2c9135a75a46_name_KAVANAUGH_050.jpg
+items.1.image.original_width = 1920
+items.1.image.original_height = 1080
+*/
+
+function openFetchSection() {
+  var html = HtmlService
+  .createTemplateFromFile('articles')
+  .evaluate();
+  SpreadsheetApp
+  .getUi()
+  .showModalDialog(html, 'Output');
+}
+
+function doFetchSection() {
+  var sheet = SpreadsheetApp.getActive();
+  var selection = sheet.getActiveCell();
+  var sectionid = selection.getValue();
+  var section = new ArticleGrabber(sectionid);
+  var module_config = {
+    'section_id':sectionid,
+    'module.skip_flap':'t',
+    'wrap.width':650,
+    'wrap.padding':40,
+    'heading':'',
+    'teaser':'',
+    'module.bottom.space':0,
+    'line_after_block':0,
+    'space_after_block':1,
+    'module.social_share':1,
+    'hide_plus':0,
+    'hide_topics':1,
+    'hide_ago':1,
+    'cache':true    
+  }
+  var foo = section.convertToPlainConfig(module_config, 0);
+  var stories = section.data.join('\n');
+  return foo + '\n\n' + stories;
+}
+
+function ArticleGrabber(sectionid) {
+  this.sectionid = sectionid;
+  var json = this.fetchSection(sectionid);
+  this.data = json['stream']
+  .filter(function (obj) { return obj['type'] == 'post'; })
+  .map(this.generateSectionArticles, this)
+  .map(this.decorateItems, this)
+  .map(this.convertToArticleConfig, this);
+  return this;
+}
+
+ArticleGrabber.prototype.fetchSection = function (sectionid) {
+  var url = 'https://flapi.flipboard.com/content/v1/sections?limit=10&remoteid=' + encodeURIComponent(sectionid);
+  var response = UrlFetchApp.fetch(url);
+  var data = response.getContentText();
+  return JSON.parse(data);
+};
+
+ArticleGrabber.prototype.getImages = function(item) {
+  var inlineImage = item['inlineImage'];
+  var inlineItems = item['inlineItems'];
+  var imageurl = inlineImage['mediumURL'] || inlineImage['largeURL'] || inlineImage['xlargeURL'];
+  Logger.log(imageurl);
+  return {
+    'url':imageurl,
+    'width':inlineImage['original_width'],
+    'height':inlineImage['original_height']
+  };
+};
+
+ArticleGrabber.prototype.generateSectionArticles = function(item, index) {
+  var image = this.getImages(item);
+  return {
+    'title':item['title'],
+    'excerpt':item['excerptText'],
+    'domain':item['sourceDomain'],
+    'author': item['authorDisplayName'],
+    'author_display_name':item['authorDisplayName'],
+    'web_url':item['sourceURL'],
+    'item_url':item['sourceURL'],
+    'section_id':item['sectionID'],
+    'image.url':image['url'],
+    'image.width':550,
+    'image.original_width':image['width'],
+    'image.original_height':image['height']
+  }
+};
+
+ArticleGrabber.prototype.decorateItems = function(item, index) {
+  var decorative = {
+    'bottomlinespace':0,
+    'bottomlineheight':1,
+    'bottomlinecolor':'#cccccc',
+    'line_after_block':1,
+    'space_after_block':1
+  };
+  return extend(item, decorative);
+};
+
+ArticleGrabber.prototype.convertToArticleConfig = function(data, index) {
+  var template = "items.{index}.{key} = {value}\n";
+  var output = "";
+  for (var key in data) {
+    var value = data[key];
+    output += template
+    .replace('{index}', (index+1))
+    .replace('{key}', key)
+    .replace('{value}', value);
+  }
+  output += "\n\n";
+  return output;  
+}
+
+ArticleGrabber.prototype.convertToPlainConfig = function (data, index) {
+  var template = "{key} = {value}\n";
+  var output = "";
+  for (var key in data) {
+    var value = data[key];
+    output += template
+    .replace('{index}', (index+1))
+    .replace('{key}', key)
+    .replace('{value}', value);
+  }
+  output += "\n";
+  return output;  
+}
+
+
+function extend(obj, src) {
+    Object.keys(src).forEach(function(key) { obj[key] = src[key]; });
+    return obj;
+}
+  
 function culturistGuestHeader() {
   var top = 'bg.outer = #000000'
   + '\n' + 'body.default_padding = 0' 
